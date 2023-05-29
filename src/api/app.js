@@ -22,7 +22,7 @@ app.use((err, req, res, next) => {
         location: err.location,
         error: [{ msg: err.message }],
     };
-    res.status(err.statusCode).send(errResponse);
+    res.status(err.statusCode || 500).send(errResponse);
 });
 
 export default app;

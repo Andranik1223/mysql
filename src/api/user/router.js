@@ -5,17 +5,16 @@ import {
     getOneController, updateController,
 } from './controller.js';
 import {
-    changePasswordValidation, deleteValidation,
-    getOneValidation, updateValidation,
+    changePasswordValidation, updateValidation,
 } from './validation.js';
 import { expressValidationResult } from '../../utils/middleware.js';
 
 const router = Router();
 
 router.get('/', getAllController);
-router.get('/:id', ...getOneValidation(), expressValidationResult, getOneController);
+router.get('/:id', getOneController);
 router.put('/:id', ...updateValidation(), expressValidationResult, updateController);
-router.delete('/:id', ...deleteValidation(), expressValidationResult, deleteController);
-router.post('/change-password', ...changePasswordValidation(), expressValidationResult, changePasswordController);
+router.delete('/:id', deleteController);
+router.post('/change-password/:id', ...changePasswordValidation(), expressValidationResult, changePasswordController);
 
 export default router;

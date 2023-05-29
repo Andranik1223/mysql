@@ -27,7 +27,8 @@ export const signinController = async (req, res, next) => {
 export const verifyEmailController = async (req, res, next) => {
     try {
         const { body } = req;
-        await verifyEmailService(body);
+        const { id } = req.params;
+        await verifyEmailService(id, body);
         res.send({ message: 'Verified' });
     } catch (err) {
         next(err);

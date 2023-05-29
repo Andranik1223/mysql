@@ -19,7 +19,7 @@ const router = Router();
 
 router.post('/signup', ...signupValidation(), expressValidationResult, signupController);
 router.post('/signin', ...signinValidation(), expressValidationResult, signinController);
-router.post('/verify-email', ...verifyEmailValidation(), expressValidationResult, verifyEmailController);
+router.post('/verify-email/:id', ...verifyEmailValidation(), expressValidationResult, verifyEmailController);
 router.post('/forget-password', ...forgetPassWordValidation(), expressValidationResult, forgetPasswordController);
 router.post('/recover-password', ...recoverPasswordValidation(), expressValidationResult, recoverPasswordController);
 

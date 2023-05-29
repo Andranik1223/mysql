@@ -11,26 +11,29 @@ import { comparePassword, hashPassword } from '../../utils/bcrypt.js';
 
 const existsByUsername = async (username) => {
     const gotten = await getOneByUsernameRepository(username);
-    if (gotten) {
+    if (gotten[0][0]) {
         throw new ServiceError(usernameExists, 409);
     }
 };
 
 export const existsByEmail = async (email) => {
     const gotten = await getOneByEmailRepository(email);
-    if (gotten) {
+    if (gotten[0][0]) {
         throw new ServiceError(emailExists, 409);
     }
 };
 
-export const getAllService = async () => getAllRepository(['username', 'firstName', 'lastName', 'email', 'age']);
+export const getAllService = async () => {
+    const gotten = await getAllRepository();
+    return gotten[0];
+};
 
 export const getOneService = async (id) => {
-    const gotten = await getOneRepository(id, ['username', 'firstName', 'lastName', 'email', 'age']);
-    if (!gotten) {
+    const gotten = await getOneRepository(id);
+    if (!gotten || gotten[0][0] === undefined) {
         throw new ServiceError(notFound('User'), 404);
     }
-    return gotten;
+    return gotten[0];
 };
 
 export const createService = async (body) => {
@@ -40,17 +43,19 @@ export const createService = async (body) => {
     await existsByUsername(username);
     await existsByEmail(email);
     const hash = await hashPassword(password);
-    return createRepository({
+    const created = await createRepository({
         username,
         email,
         firstName,
         lastName,
         age,
         password: hash,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        deletedAt: undefined,
+        isEmailVerified: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        deletedAt: null,
     });
+    return created[0];
 };
 
 export const updateService = async (id, body) => {
@@ -61,12 +66,14 @@ export const updateService = async (id, body) => {
     if (body.email) {
         await existsByEmail(body.email);
     }
-    return updateRepository(id, body);
+    const updated = await updateRepository(id, body);
+    return updated[0];
 };
 
 export const deleteService = async (id) => {
     await getOneService(id);
-    return deleteRepository(id);
+    const deleted = await deleteRepository(id);
+    return deleted[0];
 };
 
 export const changePasswordService = async (id, body) => {

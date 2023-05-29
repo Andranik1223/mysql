@@ -21,7 +21,7 @@ export const signinService = async (body) => {
     try {
         const { email, password } = body;
         user = await getOneByEmailRepository(email);
-        await comparePassword(password, user.password);
+        await comparePassword(password, user[0][0].password);
     } catch (err) {
         throw new ServiceError(invalidCreds, 401);
     }
@@ -33,11 +33,11 @@ export const signinService = async (body) => {
     return getToken({ id: user.id }, '360d');
 };
 
-export const verifyEmailService = async (body) => {
+export const verifyEmailService = async (id, body) => {
     try {
         const { token } = body;
-        const decoded = decodeToken(token);
-        await updateUserService(decoded.id, { isEmailVerified: true });
+        decodeToken(token);
+        await updateUserService(id, { isEmailVerified: 1 });
     } catch (err) {
         throw new ServiceError(expiredToken, 401);
     }

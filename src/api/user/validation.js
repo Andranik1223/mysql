@@ -1,9 +1,5 @@
-import { body, param } from 'express-validator';
+import { body } from 'express-validator';
 import * as errMessage from '../../constants/error-messages.js';
-
-export const getOneValidation = () => [
-    param('id').isMongoId().withMessage(errMessage.isMongoId),
-];
 
 export const createValidation = () => [
     body('username')
@@ -49,10 +45,6 @@ export const updateValidation = () => [
         .withMessage(errMessage.fromToString(8, 20)),
     body('email').optional()
         .isEmail().withMessage(errMessage.isEmail),
-];
-
-export const deleteValidation = () => [
-    param('id').isMongoId().withMessage(errMessage.isMongoId),
 ];
 
 export const changePasswordValidation = () => [

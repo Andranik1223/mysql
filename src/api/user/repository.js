@@ -1,9 +1,17 @@
 import { RepositoryError } from '../../utils/error-handling.js';
-import { User } from './model/model.js';
+import { conn } from '../../index.js';
+
+export const getAllRepository = async () => {
+    try {
+        return conn.promise().query('SELECT username, email, firstName, lastName, age FROM user WHERE deletedAt IS NULL');
+    } catch (err) {
+        throw new RepositoryError(err.message, 500);
+    }
+};
 
 export const getOneByUsernameRepository = async (username) => {
     try {
-        return await User.findOne({ username });
+        return conn.promise().query(`SELECT username, email, firstName, lastName, age FROM user WHERE username = '${username}'`);
     } catch (err) {
         throw new RepositoryError(err.message, 500);
     }
@@ -11,32 +19,33 @@ export const getOneByUsernameRepository = async (username) => {
 
 export const getOneByEmailRepository = async (email) => {
     try {
-        return await User.findOne({ email });
+        return conn.promise().query(`SELECT username, password, email, firstName, lastName, age FROM user WHERE email = '${email}'`);
     } catch (err) {
         throw new RepositoryError(err.message, 500);
     }
 };
 
-export const getAllRepository = async (projections) => {
+export const getOneRepository = async (id) => {
     try {
-        return await User.find().where({ deletedAt: undefined }).select(projections);
-    } catch (err) {
-        throw new RepositoryError(err.message, 500);
-    }
-};
-
-export const getOneRepository = async (id, projections) => {
-    try {
-        return await User.findOne({ _id: id }).where({ deletedAt: undefined }).select(projections);
+        return conn.promise().query(`SELECT username, email, firstName, lastName, age FROM user WHERE user_id = '${id}'`);
     } catch (err) {
         throw new RepositoryError(err.message, 500);
     }
 };
 
 export const createRepository = async (body) => {
+    const {
+        username, email, password, firstName, lastName,
+        age, isEmailVerified, createdAt, updatedAt, deletedAt,
+    } = body;
     try {
-        const created = new User(body);
-        return await created.save();
+        await conn.promise().query(`INSERT INTO user 
+        (username, email, password, firstName, lastName, age, isEmailVerified, createdAt, updatedAt, deletedAt) 
+        VALUES 
+        ('${username}', '${email}', '${password}', '${firstName}', '${lastName}',
+         '${age}', '${isEmailVerified}', '${createdAt}', '${updatedAt}', '${deletedAt}')`);
+        const gotten = await getOneByUsernameRepository(username);
+        return gotten[0];
     } catch (err) {
         throw new RepositoryError(err.message, 500);
     }
@@ -44,8 +53,15 @@ export const createRepository = async (body) => {
 
 export const updateRepository = async (id, body) => {
     try {
-        await User.updateOne({ _id: id }, body);
-        return body;
+        const arr = [...Object.keys(body)];
+        const arr1 = [...Object.values(body)];
+        const set = [];
+        for (let i = 0; i < arr.length; i++) {
+            set.push(`${arr[i]} = '${arr1[i]}'`);
+        }
+        await conn.promise().query(`UPDATE user SET ${set.join(', ')} WHERE user_id = '${id}'`);
+        const gotten = await getOneRepository(id);
+        return gotten[0];
     } catch (err) {
         throw new RepositoryError(err.message, 500);
     }
@@ -53,8 +69,7 @@ export const updateRepository = async (id, body) => {
 
 export const deleteRepository = async (id) => {
     try {
-        await User.updateOne({ _id: id }, { deletedAt: new Date() });
-        return id;
+        await conn.promise().query(`UPDATE user SET deletedAt = '${new Date().toISOString()} WHERE user_id = '${id}''`);
     } catch (err) {
         throw new RepositoryError(err.message, 500);
     }
